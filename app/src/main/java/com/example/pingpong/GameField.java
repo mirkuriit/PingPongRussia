@@ -6,9 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -34,15 +36,22 @@ public class GameField extends SurfaceView implements SurfaceHolder.Callback {
 
     Paint paint;
 
+    Rect putinRect, alienRect;
+
+    Random random = new Random();
+
+    Context context;
+
 
     public GameField(Context context) {
         super(context);
+        this.context = context;
         getHolder().addCallback(this);
         res = getResources();
         paint = new Paint();
         alien = BitmapFactory.decodeResource(res, R.drawable.alien);
         putin2 = BitmapFactory.decodeResource(res, R.drawable.putin2);
-        koeff = 20;
+        koeff = 30;
 
     }
 
@@ -71,6 +80,13 @@ public class GameField extends SurfaceView implements SurfaceHolder.Callback {
         alien1Y += alien1_speedY;
         alien1X += alien1_speedX;
 
+        putinRect = new Rect((int)putin2X, (int)putin2Y,
+                (int)putin2X + putin2.getWidth(), (int)putin2Y + putin2.getHeight());
+        alienRect = new Rect((int)alien1X, (int)alien1Y,
+                (int)alien1X + alien.getWidth(), (int)alien1Y + alien.getHeight());
+
+
+        checkPutinAlienCollision();
         checkPutinScreenCollision();
         checkAlienScreenCollision();
     }
@@ -85,7 +101,6 @@ public class GameField extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void calculate_ball_trajectory(){
-
         double g = Math.sqrt((putin2X-alien1X)*(putin2X-alien1X)+(putin2Y - alien1Y)*(putin2Y - alien1Y));
         alien1_speedX = (float) (koeff * (putin2X-alien1X)/g);
         alien1_speedY = (float) (koeff * (putin2Y - alien1Y)/g);
@@ -99,6 +114,21 @@ public class GameField extends SurfaceView implements SurfaceHolder.Callback {
         if (touch_x < game_field_screen_width/2){
             putin_speed = -15;
         }
+    }
+
+    private void checkPutinAlienCollision(){
+        if (alienRect.intersect(putinRect)){
+            putin_speed = -putin_speed;
+            alien1_speedY = -alien1_speedY;
+            alien1_speedX = -alien1_speedX;
+
+        }
+
+//        if (alien1X >= putin2X + putin2.getWidth() && alien1Y + alien.getHeight() > putin2Y && alien1X < putin2X + putin2.getWidth() + 10) {
+//            putin_speed = -putin_speed;
+//            koeff = -(alien1_speedX + random.nextInt(5));
+//        }
+
     }
 
     private void checkPutinScreenCollision(){
